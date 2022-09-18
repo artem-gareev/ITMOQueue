@@ -1,16 +1,14 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-
-from bot import config
-from loader import dp, bot
 from database import crud
-from swtichers import UserSwitchers
-from swtichers import AdminSwitchers
-from swtichers.UserSwitchers import queue_management
-from view import buttons, keyboards
-from view import messages
+from loader import dp, bot
 from states.admin import AdminStates
 from states.user import UserStates
+from swtichers import AdminSwitchers, UserSwitchers
+from swtichers.UserSwitchers import queue_management
+from view import buttons, keyboards, messages
+
+from config import settings
 
 
 @dp.message_handler(commands=["start"], state="*")
@@ -41,11 +39,11 @@ async def start_from_registration(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         message_id = data["list_id"]
     try:
-        await delete_message(message.from_user.id, message_id)
+        await bot.delete_message(message.from_user.id, message_id)
     except Exception:
         pass
 
-    if message.from_user.id in config.ADMINS_IDS:
+    if message.from_user.id in settings.ADMINS_IDS:
         await AdminSwitchers.main_menu(message)
     else:
         await UserSwitchers.main_menu(message)

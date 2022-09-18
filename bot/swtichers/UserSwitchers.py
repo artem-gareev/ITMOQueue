@@ -1,10 +1,8 @@
 from aiogram import types
-
 from database import crud
 from loader import bot
 from states.user import UserStates
-from view import keyboards
-from view import messages
+from view import keyboards, messages
 
 
 async def main_menu(message: types.Message):

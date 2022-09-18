@@ -1,8 +1,6 @@
-from sqlalchemy import (
-    Column, Integer, TIMESTAMP, VARCHAR, ForeignKey
-)
+from sqlalchemy import TIMESTAMP, VARCHAR, Column, ForeignKey, Integer
 
-from bot.database.database import Base
+from database.database import Base
 
 
 class IdMixin(object):
@@ -25,6 +23,6 @@ class Queue(Base, IdMixin):
 class PersonsInQueue(Base, IdMixin):
     __tablename__ = "persons_in_queue"
 
-    queue_id = Column(Integer,ForeignKey("queues.id", ondelete='CASCADE'))
+    queue_id = Column(Integer, ForeignKey("queues.id", ondelete='CASCADE'))
     user_id = Column(Integer, ForeignKey("users.telegram_id", ondelete='CASCADE'))
     enter_date = Column(TIMESTAMP)

@@ -7,14 +7,22 @@ services:
       - redisdata:/data
 
 
+  postgres:
+    image: postgres:13
+    env_file:
+      - ./postgres/.env
+    volumes:
+      - itmo_bot_data:/var/lib/postgresql/data
+    restart: always
+
   bot:
     build: ./bot
     env_file:
       - ./bot/.env
-    volumes:
-      - ./p3110_data:/bot/database/database_file
     depends_on:
       - redis
+      - postgres
 
 volumes:
   redisdata:
+  itmo_bot_data:

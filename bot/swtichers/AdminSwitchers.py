@@ -1,7 +1,6 @@
 from aiogram import types
 from states.admin import AdminStates
-from view import keyboards
-from view import messages
+from view import keyboards, messages
 
 
 async def main_menu(message: types.Message):

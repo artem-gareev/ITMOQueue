@@ -1,13 +1,15 @@
-from aiogram.utils import executor
-from loader import dp
 from aiogram.dispatcher import Dispatcher
+from aiogram.utils import executor
 from database.database import create_database
+from handlers import dp
+from loader import logger
 
 
 async def on_startup(dispatcher: Dispatcher):
-    print("Started")
+    logger.info("Started")
     create_database()
-    print("db maked")
+    logger.info("db created")
+
 
 async def on_shutdown(dispatcher: Dispatcher):
     await dispatcher.storage.close()
