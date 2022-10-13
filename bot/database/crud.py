@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from database.database import SessionLocal
-from database.models import PersonsInQueue, Queue, User
+from database.models import Queue, Subject, User, PracticeTeacher
 
 
 def create_user(telegram_id: int, username: Optional[str]) -> User:
@@ -16,26 +16,26 @@ def create_user(telegram_id: int, username: Optional[str]) -> User:
         return db_user
 
 
-def create_queue(name: str) -> Queue:
+def create_subject(name: str) -> Subject:
     with SessionLocal() as session:
-        db_queue = Queue(
+        db_subject = Subject(
             name=name,
         )
-        session.add(db_queue)
+        session.add(db_subject)
         session.commit()
-        session.refresh(db_queue)
-        return db_queue
+        session.refresh(db_subject)
+        return db_subject
 
 
-def get_all_queues():
+def get_all_subjects():
     with SessionLocal() as session:
-        return session.query(Queue).all()
+        return session.query(Subject).all()
 
 
-def get_queue_persons(queue_id: int) -> list[PersonsInQueue]:
+def get_persons_for_practice(practice_id: int) -> list[Queue]:
     with SessionLocal() as session:
-        return session.query(PersonsInQueue).filter(PersonsInQueue.queue_id == queue_id).order_by(
-            PersonsInQueue.enter_date).all()
+        return session.query(Queue).filter(Queue.practice_id == practice_id).order_by(
+            Queue.priority, Queue.num_in_order).all()
 
 
 def get_user(telegram_id: int) -> User:
@@ -43,19 +43,35 @@ def get_user(telegram_id: int) -> User:
         return session.query(User).filter(User.telegram_id == telegram_id).first()
 
 
-def get_in_queue(telegram_id: int, queue_id: int) -> PersonsInQueue:
+# def get_in_queue(telegram_id: int, practice_id: int) -> Queue:
+#     with SessionLocal() as session:
+#         db_person_for_practice = Queue(
+#             user_id=telegram_id, practice_id=practice_id, enter_date=datetime.now()
+#         )
+#         session.add(db_person_for_practice)
+#         session.commit()
+#         session.refresh(db_person_for_practice)
+#         return db_person_for_practice
+
+
+def drop_from_queue(telegram_id: int, practice_id: int):
     with SessionLocal() as session:
-        db_person_in_queue = PersonsInQueue(
-            user_id=telegram_id, queue_id=queue_id, enter_date=datetime.now()
-        )
-        session.add(db_person_in_queue)
+        session.query(Queue).filter_by(
+            user_id=telegram_id,
+            practice_id=practice_id).update({"is_left": True})
         session.commit()
-        session.refresh(db_person_in_queue)
-        return db_person_in_queue
 
 
-def drop_from_queue(telegram_id: int, queue_id: int):
+def get_practice(practice_id: int) -> PracticeTeacher:
     with SessionLocal() as session:
-        session.query(PersonsInQueue).filter(
-            PersonsInQueue.user_id == telegram_id,
-            PersonsInQueue.queue_id == queue_id).delete()
+        return session.query(PracticeTeacher).filter(PracticeTeacher.id == practice_id).first()
+
+
+def get_subject(subject_id: int) -> Subject:
+    with SessionLocal() as session:
+        return session.query(Subject).filter(Subject.id == subject_id).first()
+
+
+def get_all_practices_for_subject(subject_id: int) -> list[Subject]:
+    with SessionLocal() as session:
+        return session.query(PracticeTeacher).filter(PracticeTeacher.subject_id == subject_id).all()
