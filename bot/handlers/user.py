@@ -22,16 +22,7 @@ async def start(message: types.Message):
 
 @dp.message_handler(text=buttons.queues, state=UserStates.MAIN_MENU)
 async def select_subjects(message: types.Message, state: FSMContext):
-    subjects = crud.get_all_subjects()
-    await UserStates.SELECT_SUBJECT.set()
-
-    kb = keyboards.mange_subject if message.from_user.id in settings.ADMINS_IDS else keyboards.back
-    text = messages.LIST_OF_SUBJECT if subjects else messages.NO_SUBJECTS
-    await message.answer(messages.SELECT_SUBJECT, reply_markup=kb)
-    msg = await message.answer(text, reply_markup=keyboards.subjects_kb(subjects))
-
-    async with state.proxy() as data:
-        data["list_id"] = msg.message_id
+    await UserSwitchers.select_subject(message, state, message.from_user.id)
 
 
 @dp.message_handler(text=buttons.back, state=UserStates.SELECT_SUBJECT)
@@ -48,25 +39,26 @@ async def back_from_select_subject(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(text_startswith="subject_", state=UserStates.SELECT_SUBJECT)
 async def switch_to_practise(query: types.CallbackQuery, state: FSMContext):
     subject_id = int(query.data.split("_")[-1])
-    practises = crud.get_all_practices_for_subject(subject_id)
-
-    await UserStates.SELECT_PRACTICE.set()
-
-    kb = keyboards.mange_subject if query.from_user.id in settings.ADMINS_IDS else keyboards.back
-    text = messages.LIST_OF_PRACTICES if practises else messages.NO_PRACTISES
-
-    await query.message.answer(messages.SELECT_PRACTICES, reply_markup=kb)
-    msg = await query.message.answer(text, reply_markup=keyboards.practice_kb(practises))
-
-    await query.message.delete()
     async with state.proxy() as data:
         data["subject_id"] = subject_id
-        data["list_id"] = msg.message_id
+    await UserSwitchers.select_practice(query.message, state, query.from_user.id)
+    await query.message.delete()
 
 
-@dp.callback_query_handler(text_startswith="practise_", state=UserStates.SELECT_PRACTICE)
+@dp.callback_query_handler(text_startswith="practice_", state=UserStates.SELECT_PRACTICE)
 async def switch_to_subject(query: types.CallbackQuery, state: FSMContext):
     await query.message.answer("IN_DEV")
+
+
+@dp.message_handler(text=buttons.back, state=UserStates.SELECT_PRACTICE)
+async def back_from_select_subject(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        message_id = data["list_id"]
+    try:
+        await bot.delete_message(message.from_user.id, message_id)
+    except Exception:
+        pass
+    await UserSwitchers.select_subject(message, state, message.from_user.id)
 
 # await queue_management(query.from_user.id, queue_id)
 #

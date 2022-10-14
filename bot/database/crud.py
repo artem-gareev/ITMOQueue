@@ -27,6 +27,18 @@ def create_subject(name: str) -> Subject:
         return db_subject
 
 
+def create_practice(name: str, subject_id: int) -> PracticeTeacher:
+    with SessionLocal() as session:
+        db_practise = PracticeTeacher(
+            name=name,
+            subject_id=subject_id
+        )
+        session.add(db_practise)
+        session.commit()
+        session.refresh(db_practise)
+        return db_practise
+
+
 def get_all_subjects():
     with SessionLocal() as session:
         return session.query(Subject).all()
@@ -75,3 +87,15 @@ def get_subject(subject_id: int) -> Subject:
 def get_all_practices_for_subject(subject_id: int) -> list[Subject]:
     with SessionLocal() as session:
         return session.query(PracticeTeacher).filter(PracticeTeacher.subject_id == subject_id).all()
+
+
+def delete_subject(subject_id: int):
+    with SessionLocal() as session:
+        session.query(Subject).filter(Subject.id == subject_id).delete()
+        session.commit()
+
+
+def delete_practice(practice_id: int):
+    with SessionLocal() as session:
+        session.query(PracticeTeacher).filter(PracticeTeacher.id == practice_id).delete()
+        session.commit()
