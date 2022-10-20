@@ -6,9 +6,21 @@ from loader import dp, bot
 from states.admin import AdminMainStates
 from states.user import UserStates
 from swtichers import AdminSwitchers, UserSwitchers
-from view import buttons, messages
+from view import buttons, messages, keyboards
 
 from config import settings
+
+
+@dp.message_handler(commands=["run_update"], state="*", user_id=settings.ADMINS_IDS)
+async def add_new_subject(message: types.Message):
+    users = crud.get_all_users()
+    for user in users:
+        state = dp.current_state(user=user.telegram_id, chat=user.telegram_id)
+        await state.reset_data()
+        await state.set_state(UserStates.MAIN_MENU)
+        await bot.send_message(user.telegram_id, messages.SENDED_TO_MAIN_MENU)
+        await bot.send_message(user.telegram_id, messages.IN_MAIN_MENU, reply_markup=keyboards.main_menu)
+    await message.answer(messages.COMPLITED)
 
 
 @dp.message_handler(text=buttons.add_subject, state=UserStates.SELECT_SUBJECT, user_id=settings.ADMINS_IDS)

@@ -44,41 +44,25 @@ async def select_practice(message, state, user_id):
     async with state.proxy() as data:
         data["list_id"] = msg.message_id
 
-# async def queue_management(user_id, queue_id):
-#     await UserStates.MANAGE_QUEUE.set()
-#     persons = sort_persons(crud.get_persons_for_practice(queue_id))
-#     persons = [person.user_id for person in persons if not person.is_left]
-#     queue = crud.get_queue(queue_id)
-#     kb = keyboards.queue_control_menu(user_id in persons, user_id in settings.ADMINS_IDS)
-#     text = f"Очередь: {queue.name}\nЛюди в очереди:\n\n"
-#     if not persons:
-#         text += "Пока пусто..."
-#         await bot.send_message(user_id, text, reply_markup=kb)
-#         return
-#
-#     for i, person in enumerate(persons):
-#         user = crud.get_user(person)
-#         if user.telegram_id == user_id:
-#             text += f"<b>{i + 1}. {user.name}</b>\n"
-#         else:
-#             text += f"{i + 1}. {user.name}\n"
-#
-#     await bot.send_message(user_id, text, reply_markup=kb)
-#
-#
-# def sort_persons(persons: list[PersonsForPractice]):
-#     result_dict = {}
-#     today = datetime.now().strftime("%Y-%M-%d")
-#     for person in persons:
-#         if person.user_id not in result_dict.keys():
-#             result_dict[person.user_id] = 0
-#         if not person.is_left:
-#             continue
-#
-#         if person.enter_date.strftime("%Y-%M-%d") == today:
-#             result_dict[person.user_id] = 2
-#             continue
-#         if result_dict[person.user_id] != 2:
-#             result_dict[person.user_id] = 1
-#
-#     return sorted(persons, key=lambda x: (result_dict[x.user_id], x.enter_date))
+
+async def queue_management(subject_id, practice_id, user_id):
+    await UserStates.MANAGE_QUEUE.set()
+    persons = [person.user_id for person in crud.get_persons_for_practice(practice_id)]
+    subject = crud.get_subject(subject_id)
+    practice = crud.get_practice(practice_id)
+
+    text = messages.QUEUE_HEADER.format(practice=practice.name, subject=subject.name)
+
+    for i, person in enumerate(persons):
+        user = crud.get_user(person)
+        if person == user_id:
+            text += f"\n<b>{i + 1}. {user.name}</b>"
+        else:
+            text += f"\n{i + 1}.{user.name}"
+
+    if not persons:
+        text += messages.NO_PERSONS
+
+    await bot.send_message(user_id, text, reply_markup=keyboards.queue_control_menu(
+        user_id in persons, user_id in settings.ADMINS_IDS
+    ))

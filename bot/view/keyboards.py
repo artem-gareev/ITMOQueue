@@ -38,9 +38,12 @@ def queue_control_menu(in_queue: bool, is_admin: bool):
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     if in_queue:
         kb.add(buttons.leave_queue)
+        kb.add(buttons.skip_ahead)
     else:
         kb.add(buttons.enter_queue)
+
     if is_admin:
-        kb.add(buttons.move_queue)
+        kb.add(buttons.manage_queue)
+
     kb.add(buttons.back)
     return kb

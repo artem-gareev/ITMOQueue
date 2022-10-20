@@ -45,11 +45,6 @@ async def switch_to_practise(query: types.CallbackQuery, state: FSMContext):
     await query.message.delete()
 
 
-@dp.callback_query_handler(text_startswith="practice_", state=UserStates.SELECT_PRACTICE)
-async def switch_to_subject(query: types.CallbackQuery, state: FSMContext):
-    await query.message.answer("IN_DEV")
-
-
 @dp.message_handler(text=buttons.back, state=UserStates.SELECT_PRACTICE)
 async def back_from_select_subject(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -60,31 +55,70 @@ async def back_from_select_subject(message: types.Message, state: FSMContext):
         pass
     await UserSwitchers.select_subject(message, state, message.from_user.id)
 
-# await queue_management(query.from_user.id, queue_id)
-#
-#
-# @dp.message_handler(text=buttons.back, state=UserStates.MANAGE_QUEUE)
-# async def back_from_switch_to_queue(message: types.Message, state: FSMContext):
-#     await select_queue(message, state)
-#
-#
-# @dp.message_handler(text=buttons.enter_queue, state=UserStates.MANAGE_QUEUE)
-# async def enter_queue(message: types.Message, state: FSMContext):
-#     async with state.proxy() as data:
-#         queue_id = data['queue_id']
-#     if message.from_user.id in [person.id for person in crud.get_queue_persons(queue_id)]:
-#         await message.answer(messages.ALREADY_IN_QUEUE)
-#         return
-#     crud.get_in_queue(message.from_user.id, queue_id)
-#     await message.answer(messages.GOT_IN_QUEUE)
-#     await queue_management(message.from_user.id, queue_id)
-#
-#
-# @dp.message_handler(text=buttons.leave_queue, state=UserStates.MANAGE_QUEUE)
-# async def leave_queue(message: types.Message, state: FSMContext):
-#     logger.info("start droping")
-#     async with state.proxy() as data:
-#         queue_id = data['queue_id']
-#     logger.info(f"{message.from_user.id=}, {queue_id=}")
-#     logger.info(crud.drop_from_queue(message.from_user.id, queue_id))
-#     await queue_management(message.from_user.id, queue_id)
+
+@dp.callback_query_handler(text_startswith="practice_", state=UserStates.SELECT_PRACTICE)
+async def switch_to_subject(query: types.CallbackQuery, state: FSMContext):
+    practice_id = int(query.data.split("_")[-1])
+    async with state.proxy() as data:
+        data["practice_id"] = practice_id
+        subject_id = data["subject_id"]
+    await query.message.delete()
+    await UserSwitchers.queue_management(subject_id, practice_id, query.from_user.id)
+
+
+@dp.message_handler(text=buttons.back, state=UserStates.MANAGE_QUEUE)
+async def back_from_switch_to_queue(message: types.Message, state: FSMContext):
+    await UserSwitchers.select_practice(message, state, message.from_user.id)
+
+
+@dp.message_handler(text=buttons.enter_queue, state=UserStates.MANAGE_QUEUE)
+async def enter_queue(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        practice_id = data['practice_id']
+        subject_id = data["subject_id"]
+    persons = crud.get_persons_for_practice(practice_id)
+    all_persons_for_lab = sum(
+        [crud.get_persons_for_practice(practice.id) for practice in crud.get_all_practices_for_subject(subject_id)],
+        [])
+    if message.from_user.id in [p.user_id for p in all_persons_for_lab]:
+        await message.answer(messages.ALREADY_IN_QUEUE)
+        return
+
+    priority = crud.get_user_priority(message.from_user.id, practice_id)
+    print(priority, flush=True)
+    number_to_enter = max([0] + [person.num_in_order for person in persons if person.priority == priority]) + 1
+
+    crud.enter_queue(message.from_user.id, practice_id, priority, number_to_enter)
+    await message.answer(messages.GOT_IN_QUEUE)
+    await UserSwitchers.queue_management(subject_id, practice_id, message.from_user.id)
+
+
+@dp.message_handler(text=buttons.skip_ahead, state=UserStates.MANAGE_QUEUE)
+async def enter_queue(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        practice_id = data['practice_id']
+        subject_id = data["subject_id"]
+    persons = crud.get_persons_for_practice(practice_id)
+    logger.info([person.user_id for person in persons])
+    for i in range(len(persons) - 1):
+        logger.info(f"{i} {persons[i].user_id}")
+        if persons[i].user_id == message.from_user.id:
+            crud.edit_user_order_place(persons[i].user_id, practice_id, persons[i].num_in_order + 1)
+            crud.edit_user_order_place(persons[i + 1].user_id, practice_id, persons[i].num_in_order - 1)
+            break
+
+    await message.answer(messages.PEOPLE_MOVED)
+    await UserSwitchers.queue_management(subject_id, practice_id, message.from_user.id)
+
+
+@dp.message_handler(text=buttons.leave_queue, state=UserStates.MANAGE_QUEUE)
+async def leave_queue(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        practice_id = data['practice_id']
+        subject_id = data["subject_id"]
+
+    person = crud.get_person_for_practice(practice_id, message.from_user.id)
+    crud.drop_from_queue(telegram_id=person.user_id, practice_id=practice_id)
+    crud.move_queue(practice_id, person.priority, person.num_in_order, -1)
+    await message.answer(messages.LEFT_FROM_QUEUE)
+    await UserSwitchers.queue_management(subject_id, practice_id, message.from_user.id)
