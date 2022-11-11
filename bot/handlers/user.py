@@ -63,6 +63,7 @@ async def switch_to_subject(query: types.CallbackQuery, state: FSMContext):
         data["practice_id"] = practice_id
         subject_id = data["subject_id"]
     await query.message.delete()
+    await UserStates.MANAGE_QUEUE.set()
     await UserSwitchers.queue_management(subject_id, practice_id, query.from_user.id)
 
 
@@ -85,11 +86,11 @@ async def enter_queue(message: types.Message, state: FSMContext):
         return
 
     priority = crud.get_user_priority(message.from_user.id, practice_id)
-    print(priority, flush=True)
     number_to_enter = max([0] + [person.num_in_order for person in persons if person.priority == priority]) + 1
 
     crud.enter_queue(message.from_user.id, practice_id, priority, number_to_enter)
     await message.answer(messages.GOT_IN_QUEUE)
+    await UserStates.MANAGE_QUEUE.set()
     await UserSwitchers.queue_management(subject_id, practice_id, message.from_user.id)
 
 
@@ -108,6 +109,7 @@ async def enter_queue(message: types.Message, state: FSMContext):
             break
 
     await message.answer(messages.PEOPLE_MOVED)
+    await UserStates.MANAGE_QUEUE.set()
     await UserSwitchers.queue_management(subject_id, practice_id, message.from_user.id)
 
 
@@ -121,4 +123,5 @@ async def leave_queue(message: types.Message, state: FSMContext):
     crud.drop_from_queue(telegram_id=person.user_id, practice_id=practice_id)
     crud.move_queue(practice_id, person.priority, person.num_in_order, -1)
     await message.answer(messages.LEFT_FROM_QUEUE)
+    await UserStates.MANAGE_QUEUE.set()
     await UserSwitchers.queue_management(subject_id, practice_id, message.from_user.id)

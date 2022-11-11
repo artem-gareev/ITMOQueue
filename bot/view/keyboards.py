@@ -47,3 +47,17 @@ def queue_control_menu(in_queue: bool, is_admin: bool):
 
     kb.add(buttons.back)
     return kb
+
+
+edit_queue = ReplyKeyboardMarkup(resize_keyboard=True)
+edit_queue.add(KeyboardButton(buttons.manage_queue))
+edit_queue.add(KeyboardButton(buttons.move_queue))
+edit_queue.add(KeyboardButton(buttons.skip_ahead))
+edit_queue.add(KeyboardButton(buttons.back))
+
+
+def select_person(persons: list):
+    kb = InlineKeyboardMarkup()
+    for person in persons:
+        kb.add(InlineKeyboardButton(person[1], callback_data=f"person_{person[0]}"))
+    return kb

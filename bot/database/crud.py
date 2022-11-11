@@ -62,6 +62,11 @@ def get_person_for_practice(practice_id, person_id) -> Queue:
                                            Queue.user_id == person_id).first()
 
 
+def get_person_for_practice_by_id(practice_queue_id) -> Queue:
+    with SessionLocal() as session:
+        return session.query(Queue).filter(Queue.id == practice_queue_id).first()
+
+
 def get_user_priority(user_id, practice_id):
     with SessionLocal() as session:
         last_left = session.query(Queue).filter(Queue.practice_id == practice_id,
@@ -149,4 +154,17 @@ def move_queue(practice_id: int, priority: int, move_from: int, value):
             Queue.priority == priority,
             Queue.is_left == False,
             Queue.num_in_order > move_from).update({"num_in_order": Queue.num_in_order + value})
+        session.commit()
+
+
+def delete_person_by_in_queue_id(person_id: int):
+    with SessionLocal() as session:
+        session.query(Queue).filter(Queue.id == person_id).delete()
+        session.commit()
+
+
+def edit_user_priority(person_id, priority):
+    with SessionLocal() as session:
+        session.query(Queue).filter_by(
+            id=person_id).update({"priority": priority})
         session.commit()
