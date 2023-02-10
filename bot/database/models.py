@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import TIMESTAMP, VARCHAR, Column, ForeignKey, Integer, Boolean
 
 from database.database import Base
@@ -33,8 +35,9 @@ class Queue(Base, IdMixin):
     practice_id = Column(Integer, ForeignKey("practice_teachers.id", ondelete='CASCADE'))
     user_id = Column(Integer, ForeignKey("users.telegram_id", ondelete='CASCADE'))
 
+    is_new = Column(Boolean, default=True)
     priority = Column(Integer, default=0)
     num_in_order = Column(Integer, default=1)
 
-    is_left = Column(Boolean, default=False)
-
+    enter_time = Column(TIMESTAMP, default=datetime.utcnow())
+    left_time = Column(TIMESTAMP)

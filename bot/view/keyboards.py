@@ -60,3 +60,7 @@ def select_person(persons: list):
     for person in persons:
         kb.add(InlineKeyboardButton(person[1], callback_data=f"person_{person[0]}"))
     return kb
+
+choose_purpose = ReplyKeyboardMarkup(resize_keyboard=True)
+choose_purpose.row(KeyboardButton(buttons.new_lab), KeyboardButton(buttons.finish_questions))
+choose_purpose.add(KeyboardButton(buttons.back))

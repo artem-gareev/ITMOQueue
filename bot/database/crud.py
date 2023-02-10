@@ -52,8 +52,8 @@ def get_all_users():
 def get_persons_for_practice(practice_id: int) -> list[Queue]:
     with SessionLocal() as session:
         return session.query(Queue).filter(Queue.practice_id == practice_id,
-                                           Queue.is_left == False).order_by(Queue.priority,
-                                                                            Queue.num_in_order).all()
+                                           Queue.left_time == None).order_by(Queue.priority,
+                                                                             Queue.num_in_order).all()
 
 
 def get_person_for_practice(practice_id, person_id) -> Queue:
@@ -71,8 +71,9 @@ def get_user_priority(user_id, practice_id):
     with SessionLocal() as session:
         last_left = session.query(Queue).filter(Queue.practice_id == practice_id,
                                                 Queue.user_id == user_id,
-                                                Queue.is_left).order_by(Queue.left_time.desc()).first()
-        if last_left and last_left.left_time == datetime.now().date():
+                                                ).order_by(Queue.left_time.desc()).first()
+        # todo протестить особенно
+        if last_left and last_left.left_time and last_left.left_time == datetime.now().date():
             return 1
         return 0
 
@@ -90,12 +91,13 @@ def get_user(telegram_id: int) -> User:
         return session.query(User).filter(User.telegram_id == telegram_id).first()
 
 
-def enter_queue(user_id, practice_id, priority, number_to_enter) -> Queue:
+def enter_queue(user_id, practice_id, priority, is_new, number_to_enter) -> Queue:
     with SessionLocal() as session:
         db_person_for_practice = Queue(
             user_id=user_id,
             practice_id=practice_id,
             priority=priority,
+            is_new=is_new,
             num_in_order=number_to_enter
         )
         session.add(db_person_for_practice)
@@ -108,7 +110,7 @@ def drop_from_queue(telegram_id: int, practice_id: int):
     with SessionLocal() as session:
         session.query(Queue).filter_by(
             user_id=telegram_id,
-            practice_id=practice_id).update({"is_left": True, "left_time": datetime.today()})
+            practice_id=practice_id).update({"left_time": datetime.today()})
         session.commit()
 
 

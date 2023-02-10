@@ -6,3 +6,4 @@ class UserStates(StatesGroup):
     SELECT_SUBJECT = State()
     SELECT_PRACTICE = State()
     MANAGE_QUEUE = State()
+    CHOOSE_PURPOSE = State()
