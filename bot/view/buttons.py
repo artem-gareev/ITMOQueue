@@ -12,3 +12,6 @@ skip_ahead = "⏩ пропустить вперед"
 
 manage_queue = "✍️ Редактировать очередь"
 move_queue = "⏭ Сдвинуть очередь"
+delete_from_queue = "Удалить из очереди"
+
+questions = "Вопросы к лабам"

@@ -37,5 +37,4 @@ class Queue(Base, IdMixin):
     num_in_order = Column(Integer, default=1)
 
     is_left = Column(Boolean, default=False)
-    left_time = Column(TIMESTAMP)
 
