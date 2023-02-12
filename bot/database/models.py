@@ -29,7 +29,7 @@ class PracticeTeacher(Base, IdMixin):
     name = Column(VARCHAR)
 
 
-class Queue(Base, IdMixin):
+class PersonInQueue(Base, IdMixin):
     __tablename__ = "queue"
 
     practice_id = Column(Integer, ForeignKey("practice_teachers.id", ondelete='CASCADE'))

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from database.database import SessionLocal
-from database.models import Queue, Subject, User, PracticeTeacher
+from database.models import PersonInQueue, Subject, User, PracticeTeacher
 
 
 def create_user(telegram_id: int, username: Optional[str]) -> User:
@@ -39,7 +39,7 @@ def create_practice(name: str, subject_id: int) -> PracticeTeacher:
         return db_practise
 
 
-def get_all_subjects():
+def get_all_subjects() -> list[Subject]:
     with SessionLocal() as session:
         return session.query(Subject).all()
 
@@ -49,41 +49,41 @@ def get_all_users():
         return session.query(User).all()
 
 
-def get_persons_for_practice(practice_id: int) -> list[Queue]:
+def get_persons_for_practice(practice_id: int) -> list[PersonInQueue]:
     with SessionLocal() as session:
-        return session.query(Queue).filter(Queue.practice_id == practice_id,
-                                           Queue.left_time == None).order_by(Queue.priority,
-                                                                             Queue.num_in_order).all()
+        return session.query(PersonInQueue).filter(PersonInQueue.practice_id == practice_id,
+                                                   PersonInQueue.left_time == None).order_by(PersonInQueue.priority,
+                                                                                             PersonInQueue.num_in_order).all()
 
 
-def get_person_for_practice(practice_id, person_id) -> Queue:
+def get_person_for_practice(practice_id, person_id) -> PersonInQueue:
     with SessionLocal() as session:
-        return session.query(Queue).filter(Queue.practice_id == practice_id,
-                                           Queue.user_id == person_id).first()
+        return session.query(PersonInQueue).filter(PersonInQueue.practice_id == practice_id,
+                                                   PersonInQueue.user_id == person_id).first()
 
 
-def get_person_for_practice_by_id(practice_queue_id) -> Queue:
+def get_person_for_practice_by_id(practice_queue_id) -> PersonInQueue:
     with SessionLocal() as session:
-        return session.query(Queue).filter(Queue.id == practice_queue_id).first()
+        return session.query(PersonInQueue).filter(PersonInQueue.id == practice_queue_id).first()
 
 
 def get_user_priority(user_id, practice_id):
     with SessionLocal() as session:
-        last_left = session.query(Queue).filter(Queue.practice_id == practice_id,
-                                                Queue.user_id == user_id,
-                                                ).order_by(Queue.left_time.desc()).first()
+        last_left = session.query(PersonInQueue).filter(PersonInQueue.practice_id == practice_id,
+                                                        PersonInQueue.user_id == user_id,
+                                                        ).order_by(PersonInQueue.left_time.desc()).first()
         # todo протестить особенно
         if last_left and last_left.left_time and last_left.left_time == datetime.now().date():
             return 1
         return 0
 
 
-def get_persons_for_practice_with_priority(practice_id: int, priority: int) -> list[Queue]:
+def get_persons_for_practice_with_priority(practice_id: int, priority: int) -> list[PersonInQueue]:
     with SessionLocal() as session:
-        return session.query(Queue).filter(Queue.practice_id == practice_id,
-                                           Queue.priority == priority,
-                                           Queue.is_left == False).order_by(
-            Queue.num_in_order).all()
+        return session.query(PersonInQueue).filter(PersonInQueue.practice_id == practice_id,
+                                                   PersonInQueue.priority == priority,
+                                                   PersonInQueue.is_left == False).order_by(
+            PersonInQueue.num_in_order).all()
 
 
 def get_user(telegram_id: int) -> User:
@@ -91,9 +91,9 @@ def get_user(telegram_id: int) -> User:
         return session.query(User).filter(User.telegram_id == telegram_id).first()
 
 
-def enter_queue(user_id, practice_id, priority, is_new, number_to_enter) -> Queue:
+def enter_queue(user_id, practice_id, priority, is_new, number_to_enter) -> PersonInQueue:
     with SessionLocal() as session:
-        db_person_for_practice = Queue(
+        db_person_for_practice = PersonInQueue(
             user_id=user_id,
             practice_id=practice_id,
             priority=priority,
@@ -108,7 +108,7 @@ def enter_queue(user_id, practice_id, priority, is_new, number_to_enter) -> Queu
 
 def drop_from_queue(telegram_id: int, practice_id: int):
     with SessionLocal() as session:
-        session.query(Queue).filter_by(
+        session.query(PersonInQueue).filter_by(
             user_id=telegram_id,
             practice_id=practice_id).update({"left_time": datetime.today()})
         session.commit()
@@ -141,32 +141,31 @@ def delete_practice(practice_id: int):
         session.commit()
 
 
-def edit_user_order_place(user_id: int, practice_id: int, order_place: int):
+def edit_user_order_place(person_id: int, order_place: int):
     with SessionLocal() as session:
-        session.query(Queue).filter_by(
-            user_id=user_id,
-            practice_id=practice_id).update({"num_in_order": order_place})
+        session.query(PersonInQueue).filter_by(
+            id=person_id).update({"num_in_order": order_place})
         session.commit()
 
 
 def move_queue(practice_id: int, priority: int, move_from: int, value):
     with SessionLocal() as session:
-        session.query(Queue).filter(
-            Queue.practice_id == practice_id,
-            Queue.priority == priority,
-            Queue.is_left == False,
-            Queue.num_in_order > move_from).update({"num_in_order": Queue.num_in_order + value})
+        session.query(PersonInQueue).filter(
+            PersonInQueue.practice_id == practice_id,
+            PersonInQueue.priority == priority,
+            PersonInQueue.is_left == False,
+            PersonInQueue.num_in_order > move_from).update({"num_in_order": PersonInQueue.num_in_order + value})
         session.commit()
 
 
 def delete_person_by_in_queue_id(person_id: int):
     with SessionLocal() as session:
-        session.query(Queue).filter(Queue.id == person_id).delete()
+        session.query(PersonInQueue).filter(PersonInQueue.id == person_id).delete()
         session.commit()
 
 
 def edit_user_priority(person_id, priority):
     with SessionLocal() as session:
-        session.query(Queue).filter_by(
+        session.query(PersonInQueue).filter_by(
             id=person_id).update({"priority": priority})
         session.commit()
