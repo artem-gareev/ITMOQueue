@@ -1,8 +1,11 @@
 from aiogram import types
 
 from database import crud
-from loader import dp
-from swtichers import UserSwitchers
+from loader import dp, bot
+from view import messages, keyboards
+from states.user import UserStates
+
+from config import settings
 
 
 @dp.message_handler(commands=["run_update"], state="*", user_id=settings.ADMINS_IDS)

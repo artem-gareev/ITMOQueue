@@ -10,6 +10,4 @@ class AdminMainStates(StatesGroup):
 
 class AdminEditQueueStates(StatesGroup):
     MAIN_MENU = State()
-    SEND_TO_SWAP_FROM = State()
-    SEND_TO_SWAP_TO = State()
-    SEND_TO_SKIP_FROM = State()
+    SELECT_PERSON_TO_DELETE = State()

@@ -51,7 +51,7 @@ def queue_control_menu(in_queue: bool, is_admin: bool):
 
 edit_queue = ReplyKeyboardMarkup(resize_keyboard=True)
 edit_queue.add(KeyboardButton(buttons.delete_from_queue))
-edit_queue.add(KeyboardButton(buttons.skip_ahead))
+edit_queue.add(KeyboardButton(buttons.skip_person))
 edit_queue.add(KeyboardButton(buttons.back))
 
 
@@ -60,6 +60,7 @@ def select_person(persons: list):
     for person in persons:
         kb.add(InlineKeyboardButton(person[1], callback_data=f"person_{person[0]}"))
     return kb
+
 
 choose_purpose = ReplyKeyboardMarkup(resize_keyboard=True)
 choose_purpose.row(KeyboardButton(buttons.new_lab), KeyboardButton(buttons.finish_questions))

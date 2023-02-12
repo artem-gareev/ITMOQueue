@@ -60,3 +60,4 @@ async def manage_queue_from_query(query: types.CallbackQuery, state: FSMContext)
     text = utils.get_queue_text(subject_id, practice_id, persons, query.from_user.id)
     await query.message.answer(messages.IN_EDIT_QUEUE_MENU.format(queue=text), reply_markup=keyboards.edit_queue)
     await AdminEditQueueStates.MAIN_MENU.set()
+

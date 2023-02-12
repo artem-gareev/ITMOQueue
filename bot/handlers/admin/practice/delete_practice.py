@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from database import crud
-from loader import dp
+from loader import dp, bot
 from states.admin import AdminMainStates
 from states.user import UserStates
 from swtichers import AdminSwitchers, UserSwitchers
