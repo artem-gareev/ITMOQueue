@@ -21,4 +21,5 @@ async def back_from_add_subject(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         practice_id = data['practice_id']
         subject_id = data["subject_id"]
+    await UserStates.MANAGE_QUEUE.set()
     await UserSwitchers.queue_management(subject_id, practice_id, message.from_user.id)

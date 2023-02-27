@@ -50,6 +50,6 @@ async def queue_management(subject_id, practice_id, user_id):
     persons = crud.get_persons_for_practice(practice_id)
     text = get_queue_text(subject_id, practice_id, persons, user_id)
     await bot.send_message(user_id, text, reply_markup=keyboards.queue_control_menu(
-        user_id in persons, user_id in settings.ADMINS_IDS
+        user_id in [p.user_id for p in persons], user_id in settings.ADMINS_IDS
     ))
 

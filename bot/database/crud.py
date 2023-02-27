@@ -72,8 +72,7 @@ def get_user_priority(user_id, practice_id):
         last_left = session.query(PersonInQueue).filter(PersonInQueue.practice_id == practice_id,
                                                         PersonInQueue.user_id == user_id,
                                                         ).order_by(PersonInQueue.left_time.desc()).first()
-        # todo протестить особенно
-        if last_left and last_left.left_time and last_left.left_time == datetime.now().date():
+        if last_left and last_left.left_time and last_left.left_time.date() == datetime.now().date():
             return 1
         return 0
 
@@ -82,7 +81,7 @@ def get_persons_for_practice_with_priority(practice_id: int, priority: int) -> l
     with SessionLocal() as session:
         return session.query(PersonInQueue).filter(PersonInQueue.practice_id == practice_id,
                                                    PersonInQueue.priority == priority,
-                                                   PersonInQueue.is_left == False).order_by(
+                                                   PersonInQueue.left_time is not None).order_by(
             PersonInQueue.num_in_order).all()
 
 
@@ -153,7 +152,7 @@ def move_queue(practice_id: int, priority: int, move_from: int, value):
         session.query(PersonInQueue).filter(
             PersonInQueue.practice_id == practice_id,
             PersonInQueue.priority == priority,
-            PersonInQueue.is_left == False,
+            PersonInQueue.left_time is not None,
             PersonInQueue.num_in_order > move_from).update({"num_in_order": PersonInQueue.num_in_order + value})
         session.commit()
 

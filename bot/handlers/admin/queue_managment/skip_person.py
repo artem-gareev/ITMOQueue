@@ -21,7 +21,7 @@ async def switch_to_deleting_person(message: types.Message, state: FSMContext):
         return
     person_to_skip = persons[0]
     person_to_push = persons[1]
-    if person_to_push.priority == person_to_skip.priority:
+    if person_to_push.priority != person_to_skip.priority:
         await message.answer(messages.DIFFERENT_PRIORITES)
         return
 

@@ -12,6 +12,6 @@ async def queues(message: types.Message, state: FSMContext):
     await UserSwitchers.select_subject(message, state, message.from_user.id)
 
 
-@dp.message_handler(text=buttons.questions, state=UserStates.MAIN_MENU)
+@dp.message_handler(text=buttons.lab_questions, state=UserStates.MAIN_MENU)
 async def questions(message: types.Message, state: FSMContext):
     await message.answer("В разработке")

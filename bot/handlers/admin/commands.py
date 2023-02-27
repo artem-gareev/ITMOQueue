@@ -1,5 +1,6 @@
 from aiogram import types
 
+import sorting_script
 from database import crud
 from loader import dp, bot
 from view import messages, keyboards
@@ -10,6 +11,7 @@ from config import settings
 
 @dp.message_handler(commands=["run_update"], state="*", user_id=settings.ADMINS_IDS)
 async def add_new_subject(message: types.Message):
+    await message.answer(messages.STARTED)
     users = crud.get_all_users()
     for user in users:
         try:
@@ -20,4 +22,11 @@ async def add_new_subject(message: types.Message):
             await bot.send_message(user.telegram_id, messages.IN_MAIN_MENU, reply_markup=keyboards.main_menu)
         except:
             pass
+    await message.answer(messages.COMPLITED)
+
+
+@dp.message_handler(commands=["sort"], state="*", user_id=settings.ADMINS_IDS)
+async def sort_queue(message: types.Message):
+    await message.answer(messages.STARTED)
+    sorting_script.sort_queues()
     await message.answer(messages.COMPLITED)

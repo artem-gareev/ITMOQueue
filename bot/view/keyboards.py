@@ -5,7 +5,7 @@ from view import buttons
 
 main_menu = ReplyKeyboardMarkup(resize_keyboard=True)
 main_menu.add(KeyboardButton(buttons.queues))
-main_menu.add(KeyboardButton(buttons.questions))
+main_menu.add(KeyboardButton(buttons.lab_questions))
 
 mange_subject = ReplyKeyboardMarkup(resize_keyboard=True)
 mange_subject.add(KeyboardButton(buttons.add_subject))
@@ -41,6 +41,8 @@ def queue_control_menu(in_queue: bool, is_admin: bool):
         kb.add(buttons.leave_queue)
     else:
         kb.add(buttons.enter_queue)
+
+    kb.add(buttons.update_queue)
 
     if is_admin:
         kb.add(buttons.manage_queue)

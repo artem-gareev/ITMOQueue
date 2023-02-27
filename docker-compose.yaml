@@ -23,6 +23,16 @@ services:
       - redis
       - postgres
 
+  sorter:
+    build:
+      context: ./bot
+      dockerfile: DockerfileSorter
+    env_file:
+      - ./bot/.env
+    depends_on:
+      - redis
+      - postgres
+
 volumes:
   redisdata:
   itmo_bot_data:
